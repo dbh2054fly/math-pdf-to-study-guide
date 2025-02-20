@@ -6,6 +6,8 @@ import json
 from pdf2image import convert_from_path
 from transformers import pipeline
 from pdfminer.high_level import extract_text as pdfminer_extract_text
+from mathpix import request_pdf
+from dotenv import load_dotenv
 
 # --- Step 1: File Discovery ---
 
@@ -149,9 +151,10 @@ def compile_latex(tex_file):
         print("LaTeX file generated. You can compile it manually if needed.")'''
 
 def main():
+    load_dotenv()
     file_path = "/Users/dbhfly/Projects/study-guide-generator/test_files/1_1-full.pdf"
-    text = extract_text(file_path)
-    print(text)
+    pdf_id = request_pdf(file_path)
+    print(pdf_id)
 
 if __name__ == "__main__":
     main()
