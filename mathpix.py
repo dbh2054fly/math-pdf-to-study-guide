@@ -2,7 +2,7 @@
 import os
 import requests
 import json
-
+import zipfile
 def request_pdf(file_path):
     '''request pdf from mathpix'''
     options = {
@@ -48,3 +48,26 @@ def get_latex(pdf_id):
         f.write(response.content)
     return output_file_name
 
+def unzip_latex(zip_file_name, target_dir):
+    '''unzip latex file'''
+    with zipfile.ZipFile(zip_file_name, "r") as zip_ref:
+        zip_ref.extractall("/Users/dbhfly/Projects/study-guide-generator/test_files/" + target_dir)
+    return zip_file_name.replace(".zip", "")
+    
+
+def get_latex_files(target_dir):
+    '''get all latex files in the target directory'''
+    '''Recursively find and read .tex files from a nested directory'''
+    base_path = "/Users/dbhfly/Projects/study-guide-generator/test_files/"
+    full_target_path = os.path.join(base_path, target_dir)
+
+    latex_files_content = []
+
+    for root, _, files in os.walk(full_target_path):  # Recursively iterate through directories
+        for file in files:
+            if file.endswith(".tex"):  # Ensure we only process .tex files
+                file_path = os.path.join(root, file)
+                with open(file_path, "r", encoding="utf-8") as f:
+                    latex_files_content.append(f.read())  
+
+    return latex_files_content
