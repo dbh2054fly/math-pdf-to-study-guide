@@ -12,7 +12,7 @@ def generate_study_guide(latex_content):
         {"role": "system", "content": "You are a helpful math professor."},
             {
                 "role": "user",
-                "content": f"Generate a study guide from the following latex : {latex_content}. Ensure the output is in LaTeX format."
+                "content": f"Generate a study guide from the following latex : {latex_content}. Ensure the output is in LaTeX format. Do not include anything besides the LaTeX"
             }
         ]
     )

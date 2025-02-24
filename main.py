@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 from studyguide import generate_study_guide
 from openai import OpenAI
 
-# --- Step 1: File Discovery ---
 
 def find_course_materials(directory):
     """
@@ -21,73 +20,57 @@ def find_course_materials(directory):
                 materials.append(os.path.join(root, file))
     return materials
 
-# --- Step 2: Extraction of text and math from lecture slides ---
-
-def extract_text(file_path):
-    """
-    Uses pdfminer to extract text from slides
-    """
-    return pdfminer_extract_text(file_path)
-
-
-# --- Main Pipeline ---
-
-'''def main():
-    # 1. Ask user for the directory containing course materials (e.g., lecture slides).
-    directory = input("Enter the directory containing course materials: ").strip()
-    if not os.path.isdir(directory):
-        print("Invalid directory. Exiting.")
-        return
-
-    # 2. Find all course material files.
-    materials = find_course_materials(directory)
-    if not materials:
-        print("No course material files found in the directory.")
-        return
-
-    print(f"Found {len(materials)} material file(s). Extracting text via OCR...")
-    combined_text = ""
-    for file in materials:
-        print(f"Processing: {file}")
-        text = extract_material_text(file)
-        combined_text += "\n" + text
-
-    if not combined_text.strip():
-        print("No text could be extracted from the materials. Exiting.")
-        return
-
-    # 3. Summarize the extracted text.
-    print("Initializing summarization pipeline (this may take a moment)...")
-    # For math/technical text (e.g., lecture slides)
-    summarizer = pipeline("summarization", model="allenai/led-large-16384-arxiv")
-    print("Summarizing the course material...")
-    study_guide_summary = summarize_text(combined_text, summarizer)
-
-    # Wrap the summary in a LaTeX section.
-    study_guide_content = r"\section{Course Material Summary}" + "\n" + study_guide_summary
-
-    # 4. Generate the LaTeX study guide.
-    tex_file = "study_guide.tex"
-    generate_latex(study_guide_content, output_file=tex_file)
-
-    # 5. Optionally compile the LaTeX file into a PDF.
-    compile_choice = input("Would you like to compile the LaTeX file to PDF? (y/n): ").strip().lower()
-    if compile_choice == "y":
-        compile_latex(tex_file)
-    else:
-        print("LaTeX file generated. You can compile it manually if needed.")'''
 
 def main():
     load_dotenv()
-    #file_path = "/Users/dbhfly/Projects/study-guide-generator/test_files/1_1-full.pdf"
-    #pdf_id = request_pdf(file_path)
-    #print(pdf_id)
-    file = "/Users/dbhfly/Projects/study-guide-generator/2025_02_20_c1557316265c2c16e256g.tex.zip"
-    #unzip_latex(file, "1_1-guide")
-    latex_files = get_latex_files("1_1-guide")
-    study_guide = generate_study_guide(latex_files)
-    print(study_guide)
+    # 1. Ask user for the directory containing course materials (e.g., lecture slides).
+    relative_path = input("Enter the relative path to thedirectory containing course pdfs: ").strip()
+    directory = os.path.abspath("test_files/" + relative_path)
+    if not os.path.isdir(directory):
+        print("Invalid directory. Exiting.")
+        return
+    
+    # 2. Get list of pdf files in directory
+    pdf_files = find_course_materials(directory)
+    if not pdf_files:
+        print("No pdf files found in the directory.")
+        return
+    print("\nFound PDF files:")
+    for pdf_file in pdf_files:
+        print(f"  - {os.path.basename(pdf_file)}")
+    
+    # 3. Get pdf ids from mathpix
+    pdf_ids = []
+    for pdf_file in pdf_files:
+        pdf_id = request_pdf(pdf_file)
+        pdf_ids.append(pdf_id)
+    print(pdf_ids)
 
+    #4. Get latex zip files from mathpix into directory
+    latex_zip_files = []
+    for pdf_id in pdf_ids:
+        latex_zip_file = get_latex(pdf_id, directory)
+        latex_zip_files.append(latex_zip_file)
+    print("\nGenerated LaTeX ZIP files:")
+    for zip_file in latex_zip_files:
+        print(f"  - {os.path.basename(zip_file)}")
+    
+    #5. Unzip latex zip files
+    latex_files = []
+    for latex_zip_file in latex_zip_files:
+        latex_files.append(unzip_latex(latex_zip_file, directory))
+    print("\nExtracted LaTeX files:")
+    for tex_file in latex_files:
+        print(f"  - {os.path.basename(tex_file)}")
+
+    #6. read latex files
+    
+    latex_files_content = get_latex_files(latex_files, directory)
+    print(latex_files_content)
+
+    #7. Generate study guide
+    study_guide = generate_study_guide(latex_files_content)
+    print(study_guide)
 
 if __name__ == "__main__":
     main()
